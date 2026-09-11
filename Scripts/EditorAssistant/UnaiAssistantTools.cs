@@ -65,6 +65,61 @@ namespace UnAI.Editor.Assistant
             }
             return null;
         }
+
+        /// <summary>
+        /// Resolves a GameObject by name or hierarchy path, <b>including inactive</b> objects.
+        /// <see cref="GameObject.Find(string)"/> does not return inactive objects, which made
+        /// tools fail on UI panels that are disabled at edit time.
+        /// </summary>
+        protected static GameObject ResolveGameObject(string nameOrPath)
+        {
+            if (string.IsNullOrEmpty(nameOrPath)) return null;
+
+            var candidates = Resources.FindObjectsOfTypeAll<GameObject>()
+                .Where(go => go != null && go.scene.IsValid() && go.scene.isLoaded)
+                .ToList();
+
+            // 1. Exact hierarchy path.
+            foreach (var go in candidates)
+            {
+                if (GetHierarchyPath(go) == nameOrPath)
+                    return go;
+            }
+
+            bool isPath = nameOrPath.IndexOf('/') >= 0;
+
+            // 2. Exact name (first match) when no path was given.
+            if (!isPath)
+            {
+                var byName = candidates.FirstOrDefault(go => go.name == nameOrPath);
+                if (byName != null) return byName;
+            }
+
+            // 3. Partial path suffix, e.g. "MainMenuPanel/Header".
+            string suffix = "/" + nameOrPath;
+            foreach (var go in candidates)
+            {
+                if (GetHierarchyPath(go).EndsWith(suffix, StringComparison.Ordinal))
+                    return go;
+            }
+
+            return null;
+        }
+
+        /// <summary>Builds the full "Root/Child/Leaf" path of a GameObject.</summary>
+        protected static string GetHierarchyPath(GameObject go)
+        {
+            if (go == null) return null;
+
+            var sb = new StringBuilder(go.name);
+            var parent = go.transform.parent;
+            while (parent != null)
+            {
+                sb.Insert(0, parent.name + "/");
+                parent = parent.parent;
+            }
+            return sb.ToString();
+        }
     }
 
     public class InspectSceneTool : UnaiEditorTool
@@ -236,7 +291,7 @@ namespace UnAI.Editor.Assistant
                 string parentName = parentToken.ToString();
                 if (!string.IsNullOrEmpty(parentName))
                 {
-                    var parent = GameObject.Find(parentName);
+                    var parent = ResolveGameObject(parentName);
                     if (parent != null)
                         Undo.SetTransformParent(go.transform, parent.transform, $"Set parent of {name}");
                 }
@@ -351,7 +406,7 @@ namespace UnAI.Editor.Assistant
             if (string.IsNullOrEmpty(name)) return "Error: 'name' is required. Specify the name of the GameObject to modify. " +
                 "Example: {\"name\": \"MyObject\", \"add_components\": [\"Camera\"]}";
 
-            var go = GameObject.Find(name);
+            var go = ResolveGameObject(name);
             if (go == null)
             {
                 go = Resources.FindObjectsOfTypeAll<GameObject>()
@@ -426,7 +481,7 @@ namespace UnAI.Editor.Assistant
                 }
                 else
                 {
-                    var parent = GameObject.Find(parentName);
+                    var parent = ResolveGameObject(parentName);
                     if (parent != null)
                     {
                         Undo.SetTransformParent(go.transform, parent.transform, $"Set parent of {go.name}");
@@ -550,13 +605,7 @@ namespace UnAI.Editor.Assistant
         protected override string Execute(JObject args)
         {
             string name = args["name"]?.ToString();
-            var go = GameObject.Find(name);
-            if (go == null)
-            {
-                // Try searching all loaded objects
-                go = Resources.FindObjectsOfTypeAll<GameObject>()
-                    .FirstOrDefault(g => g.scene.isLoaded && g.name == name);
-            }
+            var go = ResolveGameObject(name);
             if (go == null) return $"GameObject '{name}' not found.";
 
             var sb = new StringBuilder();
@@ -1027,7 +1076,7 @@ namespace UnAI.Editor.Assistant
             // Apply to GameObject
             if (!string.IsNullOrEmpty(applyTo))
             {
-                var go = GameObject.Find(applyTo);
+                var go = ResolveGameObject(applyTo);
                 if (go == null)
                 {
                     go = Resources.FindObjectsOfTypeAll<GameObject>()
@@ -1274,7 +1323,7 @@ namespace UnAI.Editor.Assistant
             if (string.IsNullOrEmpty(goName))
                 return "Error: 'gameobject' is required.";
 
-            var go = GameObject.Find(goName);
+            var go = ResolveGameObject(goName);
             if (go == null)
             {
                 go = Resources.FindObjectsOfTypeAll<GameObject>()
@@ -1538,7 +1587,7 @@ namespace UnAI.Editor.Assistant
             if (string.IsNullOrEmpty(goName)) return "Error: 'gameobject' is required.";
             if (string.IsNullOrEmpty(compName)) return "Error: 'component' is required.";
 
-            var go = GameObject.Find(goName);
+            var go = ResolveGameObject(goName);
             if (go == null)
                 go = Resources.FindObjectsOfTypeAll<GameObject>()
                     .FirstOrDefault(g => g.scene.isLoaded && g.name == goName);
@@ -1835,7 +1884,7 @@ namespace UnAI.Editor.Assistant
             string parentName = GetString(args, "parent");
             if (!string.IsNullOrEmpty(parentName))
             {
-                var parent = GameObject.Find(parentName);
+                var parent = ResolveGameObject(parentName);
                 if (parent != null)
                     Undo.SetTransformParent(go.transform, parent.transform, $"Set parent of {name}");
             }
@@ -1984,7 +2033,7 @@ namespace UnAI.Editor.Assistant
             string parentName = GetString(args, "parent");
             var offset = GetToken(args, "offset") as JObject;
 
-            var original = GameObject.Find(name);
+            var original = ResolveGameObject(name);
             if (original == null)
                 return $"Error: GameObject '{name}' not found.";
 
@@ -1999,7 +2048,7 @@ namespace UnAI.Editor.Assistant
 
             if (!string.IsNullOrEmpty(parentName))
             {
-                var parent = GameObject.Find(parentName);
+                var parent = ResolveGameObject(parentName);
                 if (parent != null)
                     clone.transform.SetParent(parent.transform, true);
             }
@@ -2055,7 +2104,7 @@ namespace UnAI.Editor.Assistant
             if (string.IsNullOrEmpty(layer) && string.IsNullOrEmpty(tag))
                 return "Error: At least one of 'layer' or 'tag' must be specified.";
 
-            var go = GameObject.Find(name);
+            var go = ResolveGameObject(name);
             if (go == null)
                 return $"Error: GameObject '{name}' not found.";
 
@@ -2233,7 +2282,7 @@ namespace UnAI.Editor.Assistant
         {
             string name = GetString(args, "name");
 
-            var go = GameObject.Find(name);
+            var go = ResolveGameObject(name);
             if (go == null)
                 return $"Error: GameObject '{name}' not found.";
 
@@ -2292,7 +2341,7 @@ namespace UnAI.Editor.Assistant
             bool useGravity = args["use_gravity"]?.Value<bool>() ?? true;
             bool isKinematic = args["is_kinematic"]?.Value<bool>() ?? false;
 
-            var go = GameObject.Find(name);
+            var go = ResolveGameObject(name);
             if (go == null)
                 return $"Error: GameObject '{name}' not found.";
 
@@ -2801,7 +2850,7 @@ namespace UnAI.Editor.Assistant
             string compName = GetString(args, "component");
             string propName = GetString(args, "property");
 
-            var go = GameObject.Find(goName);
+            var go = ResolveGameObject(goName);
             if (go == null)
                 return $"Error: GameObject '{goName}' not found.";
 
@@ -2999,29 +3048,34 @@ namespace UnAI.Editor.Assistant
 
             var extraUsings = args["usings"] as JArray;
 
-            // Build the full source
-            var source = new StringBuilder();
-            source.AppendLine("using System;");
-            source.AppendLine("using System.Collections.Generic;");
-            source.AppendLine("using System.Linq;");
-            source.AppendLine("using System.Text;");
-            source.AppendLine("using UnityEngine;");
-            source.AppendLine("using UnityEditor;");
+            // Build the header first so we can report accurate line numbers for
+            // user-code compilation errors.
+            var header = new StringBuilder();
+            header.AppendLine("using System;");
+            header.AppendLine("using System.Collections.Generic;");
+            header.AppendLine("using System.Linq;");
+            header.AppendLine("using System.Text;");
+            header.AppendLine("using UnityEngine;");
+            header.AppendLine("using UnityEditor;");
 
             if (extraUsings != null)
             {
                 foreach (var u in extraUsings)
-                    source.AppendLine($"using {u};");
+                    header.AppendLine($"using {u};");
             }
 
-            source.AppendLine();
-            source.AppendLine("public static class UnaiCodeRunner");
-            source.AppendLine("{");
-            source.AppendLine("    public static string Run()");
-            source.AppendLine("    {");
-            source.AppendLine("        var output = new StringBuilder();");
-            source.AppendLine("        try");
-            source.AppendLine("        {");
+            header.AppendLine();
+            header.AppendLine("public static class UnaiCodeRunner");
+            header.AppendLine("{");
+            header.AppendLine("    public static string Run()");
+            header.AppendLine("    {");
+            header.AppendLine("        var output = new StringBuilder();");
+            header.AppendLine("        try");
+            header.AppendLine("        {");
+
+            int headerLines = header.ToString().Split('\n').Length - 1;
+
+            var source = new StringBuilder(header.ToString());
             // Indent user code
             foreach (var line in code.Split('\n'))
                 source.AppendLine("            " + line.TrimEnd('\r'));
@@ -3065,7 +3119,7 @@ namespace UnAI.Editor.Assistant
                     foreach (System.CodeDom.Compiler.CompilerError error in result.Errors)
                     {
                         if (!error.IsWarning)
-                            errorSb.AppendLine($"  Line {error.Line - CountHeaderLines()}: {error.ErrorText}");
+                            errorSb.AppendLine($"  Line {error.Line - headerLines}: {error.ErrorText}");
                     }
                     return errorSb.ToString();
                 }
@@ -3088,33 +3142,54 @@ namespace UnAI.Editor.Assistant
             }
         }
 
-        private int CountHeaderLines()
-        {
-            // Number of lines before user code starts (usings + class + method + try + {)
-            return 12;
-        }
-
         private static string[] CollectAssemblyPaths()
         {
-            var paths = new HashSet<string>();
+            // Deduplicate by simple name and skip facade / reference assemblies.
+            // Referencing mscorlib together with a facade such as
+            // Facades/System.Runtime.dll or netstandard.dll makes the compiler report
+            // CS0433 ("type is defined multiple times") for types like StringBuilder,
+            // Exception or List<T>, which previously broke every execute_csharp call.
+            var bySimpleName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            // Add all currently loaded assemblies that have a valid location
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
                     if (asm.IsDynamic) continue;
+
                     string loc = asm.Location;
-                    if (!string.IsNullOrEmpty(loc) && System.IO.File.Exists(loc))
-                        paths.Add(loc);
+                    if (string.IsNullOrEmpty(loc) || !System.IO.File.Exists(loc)) continue;
+                    if (IsFacadeOrReferenceAssembly(loc)) continue;
+
+                    string simpleName = asm.GetName().Name;
+                    if (!string.IsNullOrEmpty(simpleName) && !bySimpleName.ContainsKey(simpleName))
+                        bySimpleName[simpleName] = loc;
                 }
                 catch
                 {
-                    // Skip assemblies that throw on Location access
+                    // Skip assemblies that throw on Location / GetName access
                 }
             }
 
-            return paths.ToArray();
+            return bySimpleName.Values.ToArray();
+        }
+
+        private static bool IsFacadeOrReferenceAssembly(string path)
+        {
+            string normalized = path.Replace('\\', '/').ToLowerInvariant();
+
+            if (normalized.Contains("/facades/")) return true;
+            if (normalized.Contains("/netstandard/")) return true;
+            if (normalized.Contains("/reference assemblies/")) return true;
+
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+
+            // The CodeDom compiler injects its own core library. Passing mscorlib or a
+            // CoreLib facade on top of it triggers CS0433 ("type defined multiple times")
+            // for StringBuilder, Exception, List<T>, etc.
+            return fileName.Equals("mscorlib", StringComparison.OrdinalIgnoreCase)
+                || fileName.Equals("netstandard", StringComparison.OrdinalIgnoreCase)
+                || fileName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase);
         }
     }
 

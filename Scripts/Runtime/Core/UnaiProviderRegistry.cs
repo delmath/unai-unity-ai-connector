@@ -10,6 +10,7 @@ using UnAI.Providers.Mistral;
 using UnAI.Providers.Ollama;
 using UnAI.Providers.OpenAI;
 using UnAI.Providers.OpenAICompatible;
+using UnAI.Providers.OpenCodeGo;
 using UnAI.Utilities;
 
 namespace UnAI.Core
@@ -72,6 +73,7 @@ namespace UnAI.Core
             RegisterLazy<GeminiProvider>(config.Gemini);
             RegisterLazy<MistralProvider>(config.Mistral);
             RegisterLazy<CohereProvider>(config.Cohere);
+            RegisterLazy<OpenCodeGoProvider>(config.OpenCodeGo);
             RegisterLazy<OllamaProvider>(config.Ollama);
             RegisterLazy<LMStudioProvider>(config.LMStudio);
             RegisterLazy<LlamaCppProvider>(config.LlamaCpp);

@@ -15,7 +15,7 @@
 
 > **[Read the full documentation →](https://www.experir.com/products/unai/docs)**
 
-Connect Unity to **any AI provider** — OpenAI, Anthropic Claude, Google Gemini, Mistral, Cohere, Ollama, LM Studio, llama.cpp, xAI Grok, DeepSeek, and more — with a single, unified C# API. Use cloud models or run local LLMs. Swap providers with one line of code.
+Connect Unity to **any AI provider** — OpenAI, Anthropic Claude, Google Gemini, Mistral, Cohere, OpenCode Go, Ollama, LM Studio, llama.cpp, xAI Grok, DeepSeek, and more — with a single, unified C# API. Use cloud models or run local LLMs. Swap providers with one line of code.
 
 **One package, four ways to use AI in Unity:**
 
@@ -41,7 +41,7 @@ graph TB
 
     subgraph runtime ["Runtime"]
         Agent["🤖 Agent<br/>Tool calling · Memory · Reasoning"]
-        Core["⚡ Core<br/>9 providers · Streaming · Unified API"]
+        Core["⚡ Core<br/>10 providers · Streaming · Unified API"]
     end
 
     YOU -->|"can use as dev tools"| editor
@@ -84,12 +84,15 @@ Most Unity AI solutions force you to choose: a chat SDK for one provider, a sepa
 | **Google Gemini** (3 Pro/Flash, 2.5 Pro/Flash) | Cloud | SSE | API Key |
 | **Mistral** (Large, Medium, Small, Codestral, Devstral) | Cloud | SSE | API Key |
 | **Cohere** (Command A, Command R/R+) | Cloud | SSE | API Key |
+| **OpenCode Go** (GLM, Kimi, DeepSeek, MiniMax, Qwen, Grok…) | Cloud gateway | SSE | API Key |
 | **Ollama** | Local | NDJSON | None |
 | **LM Studio** | Local | SSE | None |
 | **llama.cpp** | Local | SSE | None |
 | **Any OpenAI-compatible API** | Custom | SSE | Optional |
 
 > **Tip:** Providers like **xAI (Grok)**, **DeepSeek**, and **Perplexity** use OpenAI-compatible APIs and work out of the box with the **OpenAI-compatible** provider - just set the base URL and API key.
+>
+> **OpenCode Go** is built in as a first-class provider: set your `OPENCODE_GO_API_KEY` and pick any of its models (GLM, Kimi, DeepSeek, MiniMax, Qwen, Grok, GPT 5.6 Luna…). UNAI automatically routes each model to the right endpoint (chat completions, Anthropic messages, or OpenAI responses).
 
 ## Features
 
@@ -465,7 +468,7 @@ For detailed guides, API references, and examples, visit the full documentation:
 | [Introduction](https://www.experir.com/products/unai/docs) | Overview, features, and architecture |
 | [Installation](https://www.experir.com/products/unai/docs/installation) | Setup instructions and requirements |
 | [Quick Start](https://www.experir.com/products/unai/docs/quick-start) | Make your first AI request in 5 minutes |
-| [Supported Providers](https://www.experir.com/products/unai/docs/providers) | All 9 providers with configuration details |
+| [Supported Providers](https://www.experir.com/products/unai/docs/providers) | All 10 providers with configuration details |
 | [Streaming](https://www.experir.com/products/unai/docs/streaming) | Real-time token-by-token responses |
 | [AI Agent System](https://www.experir.com/products/unai/docs/agent-system) | Tool calling, memory, and multi-step reasoning |
 | [Editor Assistant](https://www.experir.com/products/unai/docs/editor-assistant) | 32 built-in editor tools |

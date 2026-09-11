@@ -30,14 +30,7 @@ namespace UnAI.Providers
             if (!string.IsNullOrEmpty(apiKey))
                 headers["Authorization"] = $"Bearer {apiKey}";
 
-            if (Config.CustomHeaders != null)
-            {
-                foreach (var kvp in Config.CustomHeaders)
-                {
-                    if (!string.IsNullOrEmpty(kvp.Key))
-                        headers[kvp.Key] = kvp.Value;
-                }
-            }
+            ApplyCustomHeaders(headers);
 
             return headers;
         }

@@ -9,7 +9,7 @@ namespace UnAI.Editor
     {
         private static readonly string[] _providerFields = new[]
         {
-            "OpenAI", "Anthropic", "Gemini", "Mistral", "Cohere",
+            "OpenAI", "Anthropic", "Gemini", "Mistral", "Cohere", "OpenCodeGo",
             "Ollama", "LMStudio", "LlamaCpp", "OpenAICompatible"
         };
 
@@ -32,6 +32,7 @@ namespace UnAI.Editor
             DrawProviderSection("Gemini");
             DrawProviderSection("Mistral");
             DrawProviderSection("Cohere");
+            DrawProviderSection("OpenCodeGo");
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Local Providers", EditorStyles.boldLabel);

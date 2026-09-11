@@ -112,7 +112,7 @@ namespace UnAI.Editor
             // Core — always present (runtime)
             DrawModuleRow(
                 "⚡  Core",
-                "9 providers · Streaming · Unified API",
+                "10 providers · Streaming · Unified API",
                 "runtime",
                 true,
                 () => UnaiSetupWizard.ShowWindow());

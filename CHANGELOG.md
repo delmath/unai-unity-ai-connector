@@ -5,6 +5,14 @@ All notable changes to UNAI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **OpenCode Go** provider (`opencode-go`) — a low-cost gateway exposing open coding models (GLM, Kimi, DeepSeek, MiniMax, Qwen, Grok, GPT 5.6 Luna…) through a single API key
+- Model-aware routing: UNAI transparently dispatches each OpenCode Go model to the correct endpoint — OpenAI-compatible chat completions, Anthropic Messages, or the OpenAI Responses API
+- `OpenAIResponsesBase` — reusable base class for providers implementing the OpenAI Responses API (`/v1/responses`), including streaming, tool calling, and structured output
+- `OPENCODE_GO_API_KEY` environment variable support
+
 ## [1.0.0] - 2026-02-06
 
 ### Added

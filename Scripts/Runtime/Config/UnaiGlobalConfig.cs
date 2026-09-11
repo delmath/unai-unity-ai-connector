@@ -58,6 +58,16 @@ namespace UnAI.Config
             DefaultModel = "command-a-03-2025"
         };
 
+        [Tooltip("OpenCode Go — low-cost subscription gateway exposing open coding models " +
+                 "(GLM, Kimi, DeepSeek, MiniMax, Qwen, Grok…) through a single API key.")]
+        public UnaiProviderConfig OpenCodeGo = new()
+        {
+            ProviderId = "opencode-go",
+            BaseUrl = "https://opencode.ai/zen/go",
+            ApiKeyEnvironmentVariable = "OPENCODE_GO_API_KEY",
+            DefaultModel = "glm-5.3"
+        };
+
         [Header("Local Providers")]
         public UnaiProviderConfig Ollama = new()
         {
@@ -95,6 +105,7 @@ namespace UnAI.Config
             yield return Gemini;
             yield return Mistral;
             yield return Cohere;
+            yield return OpenCodeGo;
             yield return Ollama;
             yield return LMStudio;
             yield return LlamaCpp;

@@ -179,5 +179,20 @@ namespace UnAI.Core
             if (string.IsNullOrEmpty(request.Model))
                 request.Model = Config.DefaultModel;
         }
+
+        /// <summary>
+        /// Applies the provider's configured custom headers onto an existing header
+        /// collection. Existing keys are overwritten so users can override defaults.
+        /// </summary>
+        protected void ApplyCustomHeaders(Dictionary<string, string> headers)
+        {
+            if (Config?.CustomHeaders == null || headers == null) return;
+
+            foreach (var kvp in Config.CustomHeaders)
+            {
+                if (!string.IsNullOrEmpty(kvp.Key))
+                    headers[kvp.Key] = kvp.Value;
+            }
+        }
     }
 }
